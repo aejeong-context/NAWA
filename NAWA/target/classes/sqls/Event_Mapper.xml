@@ -1,0 +1,446 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.min.app.model.event">
+
+	<!-- 단순 이벤트 조회 -->
+	<select id="eventSelect" resultType="EDto">
+		SELECT EF_ID, EF_TITLE, EF_ATTEND_CON, EF_CON, EF_READ_CNT, EF_NUM_CNT,
+		EF_DEADLINE, EF_EVENT_START,
+		EF_LC,EF_LC_DETAIL ,UC_ID, EF_OPEN_STATUS, EF_RGD, EF_STATUS, EF_CLOSE, EF_RETRY,
+		EF_REFER
+		FROM EF
+		WHERE EF_CLOSE='N'
+		AND
+		EF_STATUS NOT IN ('C')
+		ORDER BY EF_READ_CNT DESC LIMIT 3
+	</select>
+
+
+	<!-- 페이징 리스트 -->
+	<select id="pageList" parameterType="PDto" resultType="EDto">
+		SELECT EF_ID, EF_TITLE, EF_CON, EF_ATTEND_CON, EF_READ_CNT,
+		EF_NUM_CNT, EF_DEADLINE,
+		EF_LC,EF_LC_DETAIL , UC_ID, EF_OPEN_STATUS, EF_RGD, EF_STATUS,EF_EVENT_START, EF_CLOSE,
+		EF_RETRY
+		FROM
+		(SELECT EF_ID, EF_TITLE, EF_CON, EF_ATTEND_CON, EF_READ_CNT, EF_NUM_CNT,
+		EF_DEADLINE,
+		EF_LC,EF_LC_DETAIL , UC_ID, EF_OPEN_STATUS, EF_RGD, EF_STATUS,EF_EVENT_START, EF_CLOSE,
+		EF_RETRY, (@ROWNUM:=@ROWNUM+1)RN
+		FROM (SELECT EF_ID, EF_TITLE, EF_CON, EF_ATTEND_CON, EF_READ_CNT,
+		EF_NUM_CNT, EF_DEADLINE,
+		EF_LC,EF_LC_DETAIL , UC_ID, EF_OPEN_STATUS, EF_RGD, EF_STATUS,EF_EVENT_START, EF_CLOSE,
+		EF_RETRY
+		FROM EF, (SELECT @ROWNUM:=0)R
+		ORDER BY EF_ID DESC)SUB)SUB2
+		WHERE RN BETWEEN #{start} AND #{last}
+		<!-- 다이나믹 쿼리 정렬 -->
+		<trim prefix="ORDER BY">
+			<if test="ef_order == 'EF_READ_CNT'">
+				${ef_order} DESC
+			</if>
+			<if test="ef_order =='EF_RGD'">
+				${ef_order} DESC
+			</if>
+			<if test="ef_order == 'EF_DEADLINE'">
+				${ef_order} ASC
+			</if>
+		</trim>
+	</select>
+
+	<!-- 글 갯수 가져오는 쿼리 -->
+	<select id="CountList" resultType="java.lang.Integer">
+		SELECT IFNULL(COUNT(*),0)
+		FROM EF
+	</select>
+
+
+	<!-- 검색 + 페이징 + 조회 -->
+	<select id="eventSearch" parameterType="SDto" resultType="EDto">
+		SELECT EF_ID, EF_TITLE, EF_CON, EF_ATTEND_CON, EF_READ_CNT,
+		EF_NUM_CNT, EF_DEADLINE,
+		EF_LC,EF_LC_DETAIL , UC_ID, EF_OPEN_STATUS, EF_RGD, EF_STATUS,EF_EVENT_START, EF_CLOSE,
+		EF_RETRY
+		FROM
+		(SELECT EF_ID, EF_TITLE, EF_CON, EF_ATTEND_CON, EF_READ_CNT, EF_NUM_CNT,
+		EF_DEADLINE,
+		EF_LC,EF_LC_DETAIL , UC_ID, EF_OPEN_STATUS, EF_RGD, EF_STATUS,EF_EVENT_START, EF_CLOSE,
+		EF_RETRY, (@ROWNUM:=@ROWNUM+1)RN
+		FROM (SELECT EF_ID, EF_TITLE, EF_CON, EF_ATTEND_CON, EF_READ_CNT,
+		EF_NUM_CNT, EF_DEADLINE,
+		EF_LC,EF_LC_DETAIL , UC_ID, EF_OPEN_STATUS, EF_RGD, EF_STATUS,EF_EVENT_START, EF_CLOSE,
+		EF_RETRY
+		FROM EF, (SELECT @ROWNUM:=0)R
+		<trim prefixOverrides="AND" prefix="WHERE">
+			EF_CLOSE NOT IN ('Y')
+			<if test="ef_title != '' and ef_title != null">
+				AND EF_TITLE LIKE CONCAT('%',#{ef_title},'%')
+			</if>
+			<if test="ef_lc != '' and ef_lc != null">
+				AND EF_LC LIKE CONCAT('%',#{ef_lc},'%')
+			</if>
+			<if test="uc_id != '' and uc_id != null and uc_id != 'NULL'">
+				AND UC_ID = #{uc_id}
+			</if>
+		</trim>
+		ORDER BY EF_ID DESC)SUB)SUB2
+		WHERE RN BETWEEN #{start} AND #{last}
+		<trim prefix="ORDER BY">
+			<choose>
+				<when
+					test="ef_order == 'EF_READ_CNT' and ef_order != '' and ef_order != null">
+					${ef_order} DESC
+				</when>
+				<when
+					test="ef_order == 'EF_RGD' and ef_order != '' and ef_order != null">
+					${ef_order} DESC
+				</when>
+				<when
+					test="ef_order == 'EF_DEADLINE' and ef_order != '' and ef_order != null">
+					${ef_order} ASC
+				</when>
+			</choose>
+		</trim>
+
+	</select>
+
+	<!-- 검색어에 맞는 글 갯수를 가져오는 쿼리 -->
+	<select id="eventCountSearch" parameterType="SDto"
+		resultType="java.lang.Integer">
+		SELECT IFNULL(COUNT(*),0)
+		FROM EF
+		<trim prefixOverrides="AND" prefix="WHERE">
+			EF_CLOSE NOT IN ('Y')
+			<if test="ef_title != '' and ef_title != null">
+				AND EF_TITLE LIKE CONCAT('%',#{ef_title},'%')
+			</if>
+			<if test="ef_lc != '' and ef_lc != null">
+				AND EF_LC LIKE CONCAT('%',#{ef_lc},'%')
+			</if>
+			<if test="uc_id != '' and uc_id != null and uc_id != 'NULL'">
+				AND UC_ID = #{uc_id}
+			</if>
+		</trim>
+	</select>
+
+
+	<!-- 이벤트 상세보기 -->
+	<select id="eventDetail" parameterType="java.lang.Integer"
+		resultType="EDto">
+		SELECT EF_ID, EF_TITLE, EF_CON, EF_ATTEND_CON, EF_READ_CNT, EF_NUM_CNT,
+		EF_EVENT_START, EF_DEADLINE, EF_LC,EF_LC_DETAIL , UC_ID,
+		EF_OPEN_STATUS, EF_RGD, EF_STATUS, EF_CLOSE, EF_RETRY, EF_REFER
+		FROM EF
+		WHERE EF_ID=#{ef_id}
+	</select>
+
+	<!-- 이벤트 조회수증가 -->
+	<update id="eventReadCount" parameterType="java.lang.Integer">
+		UPDATE EF SET EF_READ_CNT = EF_READ_CNT+1 WHERE EF_ID=#{ef_id}
+	</update>
+
+	<!-- 이벤트 개설 -->
+	<!-- datePicker 적용으로 인해 날짜 입력 형식 변경 %Y%m%d%H%i%s -> %Y-%m-%d -->
+	<insert id="eventCreate" parameterType="EDto">
+		INSERT INTO EF(EF_TITLE, EF_CON, EF_ATTEND_CON, EF_NUM_CNT,
+		EF_EVENT_START, EF_DEADLINE, EF_LC,EF_LC_DETAIL , UC_ID,
+		EF_OPEN_STATUS)
+		VALUES(#{ef_title},#{ef_con}, #{ef_attend_con}, #{ef_num_cnt},
+		STR_TO_DATE(#{ef_event_start}, '%Y-%m-%d'), STR_TO_DATE(#{ef_deadline},
+		'%Y-%m-%d'),#{ef_lc},#{ef_lc_detail}, #{uc_id}, #{ef_open_status})
+		<selectKey keyProperty="ef_id"
+			resultType="java.lang.Integer" order="AFTER">
+			SELECT IFNULL(MAX(EF_ID),0) FROM EF AS EF2
+		</selectKey>
+	</insert>
+
+	<!-- ef_id, mi_nck, ep_auth(참가자 권한)를 ep테이블(이벤트 참가)에 입력! -->
+	<insert id="eventPati" parameterType="java.lang.String">
+		INSERT INTO EP VALUES((SELECT IFNULL(MAX(EF_ID),0) FROM EF), #{mi_nck},'F')
+	</insert>
+
+	<!-- 이벤트 개설횟수 증가 -->
+	<update id="eventMakeIncre" parameterType="java.lang.String">
+		UPDATE MI
+		SET MI_OPEN_CNT = MI_OPEN_CNT+1 WHERE MI_NCK=#{mi_nck}
+	</update>
+
+	<update id="eventIdRefer" parameterType="java.lang.Integer">
+		UPDATE EF
+		SET EF_REFER = EF_ID
+		WHERE EF_ID = #{ef_id}
+	</update>
+
+	<!-- 이벤트 재개설 : 제목빼고 다 바꿀 수 있음 -->
+	<!-- datePicker 적용으로 인해 날짜 입력 형식 변경 %Y%m%d%H%i%s -> %Y-%m-%d -->
+	<insert id="eventReCreate" parameterType="EDto">
+		<selectKey keyProperty="ef_id" resultType="java.lang.Integer" order="BEFORE">
+			SELECT IFNULL(MAX(EF_ID),0)+1 FROM EF AS EF2
+		</selectKey>
+		INSERT INTO EF(EF_ID, EF_TITLE, EF_CON, EF_ATTEND_CON, EF_NUM_CNT, EF_EVENT_START, EF_DEADLINE, EF_STATUS, EF_LC, EF_LC_DETAIL , UC_ID,	EF_OPEN_STATUS,EF_RETRY,EF_REFER)
+		VALUES(#{ef_id}, (SELECT CONCAT('[',(RETRY+1),'회차]',TRIM(SUBSTRING(TITLE,INSTR(TITLE,']')+1)))
+		FROM (SELECT EF_TITLE AS TITLE, EF_RETRY AS RETRY
+		FROM EF AS EF2
+		WHERE EF_ID=#{ef_refer} AND EF_STATUS = 'C')SUB), #{ef_con},#{ef_attend_con},#{ef_num_cnt},STR_TO_DATE(#{ef_event_start},'%Y-%m-%d'),STR_TO_DATE(#{ef_deadline},'%Y-%m-%d'),
+		'O',#{ef_lc},#{ef_lc_detail},#{uc_id}, #{ef_open_status},(SELECT EF_RETRY FROM EF AS EF3 WHERE EF_ID = #{ef_refer})+1,#{ef_refer}
+		)
+	</insert>
+
+	<!-- 이벤트 폐쇄 -->
+	<update id="eventClose" parameterType="java.lang.Integer">
+		UPDATE EF SET EF_CLOSE='Y' WHERE EF_ID=#{ef_id}
+	</update>
+
+	<!-- 이벤트 마감 -->
+	<!-- 이벤트 마감일이 되면 마감 -->
+	<update id="eventEnd" parameterType="java.lang.Integer">
+		UPDATE EF SET EF_STATUS = 'C' WHERE EF_ID=#{ef_id}
+	</update>
+
+	<!-- 이벤트 조기마감 -->
+	<!-- 트리거를 이용해보자! -->
+	<!-- 현재 인원이랑 최대인원이랑 같고 현재 날짜가 마감일전이라면 이벤트 상태를 조기마감으로 바꿈! -->
+	<!-- <update id="eventEarlyEnd"> UPDATE EF SET EF_STATUS = 'E' WHERE EF_ID=#{ef_id} 
+		AND 현재인원 = 최대인원 AND 현재날짜 <= 마감일 </update> -->
+
+	<!-- 이벤트 추가모집 -->
+	<!-- 조기마감 상태에서 최대인원수가 현재인원보다 커지게 된다면 추가모집으로 변경! -->
+	<!-- <update id="eventAddMojib"> UPDATE EF SET EF_STATUS = 'A' WHERE EF_ID=#{ef_id} 
+		AND EF_STATUS = 'E' AND 현재인원 < 최대인원 </update> -->
+
+	<!-- 이벤트 수정 -->
+	<!-- 수정사항 : 날짜 입력받는 형식 %Y-%m-%d 형태로 변경 -->
+	<update id="eventModify" parameterType="EDto">
+		UPDATE EF SET EF_TITLE=#{ef_title}, UC_ID=#{uc_id},
+		EF_DEADLINE=STR_TO_DATE(#{ef_deadline},'%Y-%m-%d'),
+		EF_EVENT_START=STR_TO_DATE(#{ef_event_start},'%Y-%m-%d'),
+		EF_OPEN_STATUS=#{ef_open_status},
+		EF_LC=#{ef_lc},EF_LC_DETAIL=#{ef_lc_detail} , EF_CON=#{ef_con},
+		EF_ATTEND_CON=#{ef_attend_con},EF_NUM_CNT=#{ef_num_cnt}
+		WHERE EF_ID=#{ef_id} AND EF_CLOSE='N'
+	</update>
+
+
+	<!-- 이벤트 삭제 전에 참가자 테이블에서 물려있는 참가자 지우는 쿼리 -->
+	<delete id="eventEPDel" parameterType="java.lang.Integer">
+		DELETE FROM EP WHERE EF_ID=#{ef_id}
+	</delete>
+
+	<!-- 이벤트 삭제 전에 초대자 테이블에서 물려있는 참가자 지우는 쿼리 -->
+	<delete id="eventEIDel" parameterType="java.lang.Integer">
+		DELETE FROM EI WHERE EF_ID=#{ef_id}
+	</delete>
+
+	<!-- 이벤트 삭제전에 EF_STATUS = 'C' 시켜주는쿼리 -->
+	<update id="eventUpStat" parameterType="java.lang.Integer">
+		UPDATE EF SET EF_STATUS='C' WHERE EF_ID = #{ef_id}
+	</update>
+
+	<!-- 이벤트 폐쇄전에 EF_CLOSE = 'Y' 시켜주는쿼리 -->
+	<update id="eventUpSel" parameterType="java.lang.Integer">
+		UPDATE EF SET EF_CLOSE='Y' WHERE EF_ID=#{ef_id}
+	</update>
+
+	<!-- 이벤트 삭제전에 EF_CLOSE = 'Y'인 애들 찾아서 BackUp 테이블에 집어넣는 거 -->
+	<insert id="eventInSel" parameterType="java.lang.Integer">
+		INSERT INTO EF_BACKUP(EF_ID, EF_TITLE, EF_CON, EF_ATTEND_CON, EF_READ_CNT,
+		EF_NUM_CNT, EF_EVENT_START, EF_DEADLINE, EF_LC, EF_LC_DETAIL ,
+		UC_ID, EF_OPEN_STATUS, EF_STATUS, EF_CLOSE, EF_RETRY)
+		SELECT EF_ID, EF_TITLE, EF_CON, EF_ATTEND_CON, EF_READ_CNT, EF_NUM_CNT,
+		EF_EVENT_START, EF_DEADLINE, EF_LC,EF_LC_DETAIL ,
+		UC_ID, EF_OPEN_STATUS, EF_STATUS, EF_CLOSE, EF_RETRY
+		FROM EF WHERE EF_ID=#{ef_id}
+	</insert>
+
+	<!-- 백업 테이블의 EF_ID 중복방지를 위한 업데이트 구문 -->
+	<update id="eventUpBackUp" parameterType="java.lang.Integer">
+		UPDATE EF_BACKUP SET EF_ID = -1 WHERE EF_ID = #{ef_id}
+	</update>
+
+	<!-- 이벤트 삭제 -->
+	<delete id="eventDelete" parameterType="java.lang.Integer">
+		DELETE FROM EF WHERE EF_ID=#{ef_id}
+	</delete>
+
+	<!-- 이벤트 참가자 조회 -->
+	<select id="eventLineUp" parameterType="java.lang.Integer"
+		resultType="EPSDto">
+		SELECT MR_NAME,MI_PHONE,MR_EMAIL,EP_AUTH,MR_ID
+		FROM EP JOIN MI USING(MI_NCK)
+		JOIN MR USING(MR_ID)
+		WHERE EF_ID=#{ef_id}
+		ORDER BY CASE WHEN EP_AUTH IN ('F') THEN 0 END, EF_ID
+	</select>
+
+	<!-- 참가자 닉네임 조회 -->
+	<select id="eventNickFind" parameterType="java.lang.Integer"
+		resultType="java.lang.String">
+		SELECT MI_NCK
+		FROM EP
+		WHERE EF_ID = #{ef_id} AND EP_AUTH = 'F'
+	</select>
+
+	<!-- 세션 내 지역 비교 후 지역에 맞는 리스트 조회 -->
+	<select id="eventLocationCompare"
+		parameterType="com.min.app.dto.member.PrivacyMemDto" resultType="EDto">
+		SELECT DISTINCT EF_LC, EF_ID, EF_TITLE, EF_CON, EF_ATTEND_CON,
+		EF_READ_CNT, EF_NUM_CNT, EF_DEADLINE,
+		UC_ID, EF_OPEN_STATUS, EF_RGD, EF_STATUS, EF_EVENT_START, EF_CLOSE, EF_RETRY
+		FROM
+		(SELECT EF_ID, EF_TITLE, EF_ATTEND_CON, EF_CON, EF_READ_CNT, EF_NUM_CNT,
+		EF_DEADLINE, EF_EVENT_START,
+		EF_LC, UC_ID, EF_OPEN_STATUS, EF_RGD, EF_STATUS, EF_CLOSE, EF_RETRY,
+		EF_REFER, (@ROWNUM:=@ROWNUM+1)RN
+		FROM EF AS E JOIN MI AS M, (SELECT
+		@ROWNUM:=0)R
+		WHERE EF_LC = #{mi_lc} AND EF_CLOSE = 'N')SUB1
+		WHERE EF_READ_CNT
+		ORDER BY EF_READ_CNT DESC LIMIT 3
+	</select>
+
+	<select id="eventPhoneEmail" parameterType="java.lang.Integer"
+		resultType="com.min.app.dto.member.PrivacyMemDto">
+		SELECT MR_EMAIL, MI_PHONE
+		FROM MR JOIN MI USING(MR_ID) JOIN EP USING(MI_NCK)
+		WHERE EF_ID = #{ef_id}
+		AND EP_AUTH = 'F'
+	</select>
+
+	<select id="checkjoin" parameterType="EPDto"
+		resultType="java.lang.String">
+		SELECT
+		CASE
+		WHEN EF_NUM_CNT-1 = (SELECT COUNT(*) FROM EP WHERE EF_ID=#{ef_id})
+		THEN '마지막참가자'
+		WHEN EF_NUM_CNT > (SELECT COUNT(*) FROM EP WHERE
+		EF_ID=#{ef_id}) THEN '참가가능'
+		ELSE '불가하다'
+		END
+		FROM EF WHERE EF_ID=#{ef_id}
+	</select>
+
+
+	<select id="checkjoined" parameterType="EPDto"
+		resultType="java.lang.String">
+		SELECT MI_NCK FROM EP WHERE MI_NCK=#{mi_nck} AND EF_ID=#{ef_id}
+	</select>
+
+	<select id="wcheckjoined" parameterType="EPDto"
+		resultType="java.lang.String">
+		SELECT MI_NCK FROM EW WHERE MI_NCK=#{mi_nck} AND EF_ID=#{ef_id}
+	</select>
+
+	<!-- 참가취소할때 최대정원 비교후 -->
+	<select id="checknum" parameterType="EPDto"
+		resultType="java.lang.String">
+		SELECT EF_STATUS FROM EF WHERE EF_ID=#{ef_id} AND (SELECT
+		MAX(EF_NUM_CNT)FROM EF)>EF_NUM_CNT
+	</select>
+	<!-- 상태 바꿔줌 -->
+	<update id="openstatus" parameterType="EPDto">
+		UPDATE EF SET EF_STATUS = 'O' WHERE EF_ID=#{ef_id}
+
+	</update>
+	<update id="statusupdate" parameterType="EPDto">
+		UPDATE EF SET EF_STATUS = 'E' WHERE EF_ID=#{ef_id}
+	</update>
+	<!-- 이벤트 참가시 3이 될때까지 카운트가 추가됨 -->
+	<update id="eventcount" parameterType="EPDto">
+
+<![CDATA[UPDATE MI SET MI_ATTEND_CNT=MI_ATTEND_CNT+1 WHERE MI_NCK=#{mi_nck} AND MI_ATTEND_CNT<3 ]]>
+	</update>
+	<!-- 이벤트 테이블에 추가 -->
+	<insert id="eventjoin" parameterType="EPDto">
+		INSERT INTO EP VALUES (#{ef_id},#{mi_nck},'A')
+	</insert>
+
+	<!-- 이벤트 취소 -->
+
+	<!-- 이벤트 테이블에서 삭제 -->
+	<delete id="eventout" parameterType="EPDto">
+		DELETE FROM EP WHERE MI_NCK=#{mi_nck} AND EF_ID=#{ef_id}
+	</delete>
+	<!-- 이벤트 취소 해서 카운트가 -1됨 -->
+	<update id="eventminus" parameterType="EPDto">
+		UPDATE MI SET MI_ATTEND_CNT=MI_ATTEND_CNT-1 WHERE MI_NCK=#{mi_nck} AND
+		MI_ATTEND_CNT>0
+	</update>
+
+
+	<!-- 이벤트상태 확인 -->
+	<select id="checkend" parameterType="java.lang.Integer"
+		resultType="java.lang.String">
+		SELECT EF_STATUS FROM EF WHERE EF_ID=#{ef_id}
+	</select>
+
+	<!-- 대기자가 있는지 확인 -->
+	<select id="checkwating" resultType="java.lang.String">
+		SELECT EW_WAIT_CNT FROM EW WHERE EW_WAIT_CNT = (SELECT MIN(EW_WAIT_CNT) FROM
+		EW)
+	</select>
+
+	<!--대기순번이 가장 낮은 대기자가 참가자로 참가 -->
+	<insert id="watingeventjoin" parameterType="EPDto">
+		INSERT INTO EP(EF_ID,MI_NCK,EP_AUTH)
+		VALUES(#{ef_id},(SELECT MI_NCK FROM EW WHERE EW_WAIT_CNT = (SELECT MIN(EW_WAIT_CNT) FROM EW))
+		,'W')
+	</insert>
+
+	<!-- 이벤트 대기자 -->
+
+
+	<!-- 대기자 테이블에서도 삭제됨 DELETE FROM EW WHERE EW_WAIT_CNT = (SELECT MIN(EW_WAIT_CNT) 
+		FROM EW) -->
+	<delete id="watingeventout" parameterType="EPDto">
+		DELETE FROM EW WHERE MI_NCK=#{mi_nck}
+	</delete>
+
+	<!-- 최우선 대기자 자동 삭제 -->
+	<delete id="autowatingout">
+
+		DELETE FROM EW WHERE EW_WAIT_CNT = (SELECT MIN(EW_WAIT_CNT) FROM (SELECT
+		MIN(EW_WAIT_CNT) FROM EW)CNT)
+
+	</delete>
+
+	<!-- 대기자 테이블에 추가 -->
+	<insert id="addWating" parameterType="EPDto">
+
+		INSERT INTO EW (EF_ID,MI_NCK,EW_WAIT_CNT)VALUES(#{ef_id},#{mi_nck},(SELECT *
+		FROM (SELECT IFNULL(MAX(EW_WAIT_CNT)+1,1) FROM EW)WAIT))
+
+	</insert>
+
+		<!-- 총 회원수 뿌리기 -->
+	<select resultType="java.lang.Integer" id="userTotalCount">
+	SELECT COUNT(*)
+	FROM  MR R INNER JOIN MI I
+		ON R.MR_ID = I.MR_ID
+	WHERE MR_AUTH = 'U'
+	</select>
+
+	<!-- 참가중인 회원수 -->
+	<select resultType="java.lang.Integer" id="partiUserCount"> 
+	SELECT COUNT(*) FROM  EP
+		 </select>
+
+	<!-- 마감된 이벤트 -->
+	<select resultType="java.lang.Integer" id="endEvent"> 
+SELECT COUNT(*) FROM EF WHERE EF_CLOSE='Y'
+	 </select>
+
+	<!-- 진행중인 이벤트 -->
+	<select resultType="java.lang.Integer" id="continueEvent"> 
+SELECT COUNT(*) FROM EF WHERE EF_CLOSE='N'
+		 </select>
+		 
+<!--  이벤트가 마감되어있는지 확인 -->
+<select id="endEf" resultType="java.lang.Integer">
+SELECT COUNT(*) FROM EF WHERE EF_DEADLINE<![CDATA[<]]>date_add(now(),INTERVAL -1 DAY) AND EF_CLOSE ='N'
+</select>
+<!-- 이벤트 상태가 c로 바뀜 -->
+<update id="endStatus">
+UPDATE EF SET EF_STATUS ='C',EF_CLOSE='Y' WHERE EF_DEADLINE <![CDATA[<]]> date_add(now(),INTERVAL -1 DAY)
+</update>
+
+</mapper>

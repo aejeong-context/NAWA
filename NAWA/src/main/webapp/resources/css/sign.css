@@ -1,0 +1,92 @@
+<!-- dashboard -->
+.plr{
+ 	height: 400px; 
+ 	overflow: auto; 
+}
+
+<!-- info -->
+input[type=checkbox]+label {
+	width: 48%;
+	color: #bbb;
+	font-size: 10pt;
+	padding: 7px 17px 5px 17px;
+}
+
+input[type=checkbox]:checked+label {
+	width: 48%;
+	color: orange;
+	font-size: 10pt;
+	border: 1px solid orange;
+	padding: 6px 16px 4px 16px;
+	font-weight: bolder;
+	color: orange;
+}
+
+input[type=checkbox] {
+	display: none;
+}
+
+#hrSun{
+	margin-top: 62px;
+	margin-bottom: 20px;
+}
+.box {
+    position: relative; 
+    width: 100px; 
+    height: 100px; 
+    overflow: hidden;
+    border-radius: 70%;
+    border: 1px solid gray;
+    float: left;
+
+}
+.profile {
+   position: absolute; 
+   left: 50%; 
+   top: 50%; 
+   height: 100%; 
+   width: auto; 
+   -webkit-transform: translate(-50%,-50%); 
+   -ms-transform: translate(-50%,-50%); 
+   transform: translate(-50%,-50%);
+
+}
+
+#input{
+	float: right;
+
+}
+#withdrawal{
+	float: right;
+}
+
+<!-- pwChangeForm -->
+.button3{
+	text-align: right;
+}
+
+<!-- second -->
+#preview{
+	width: 90px; 
+	height:90px;
+	border-radius: 50%;
+	border: 1px solid gray;
+}
+
+#input{
+	float: right;
+
+}
+
+<!-- userList -->
+table tbody td {
+	font-size: 12spx;
+}
+
+#ordersTable.table>tbody>tr>td:first-child {
+	text-align: left;
+}
+.center{
+
+	text-align: center;
+}

@@ -1,0 +1,25 @@
+.info_data {
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-line-clamp: 7;
+	-webkit-box-orient: vertical;
+}
+
+#btn-moreInfo {
+	padding: .5em 1em;
+	text-decoration: none;
+}
+
+#effect {
+	position: relative;
+}
+
+.anotherNewClass {
+	-webkit-line-clamp: none;
+	-webkit-box-orient: vertical;
+	text-overflow: ellipsis;
+}
+
+ .btn-custom {
+   padding: 8px 12px 6px 12px;
+} 
