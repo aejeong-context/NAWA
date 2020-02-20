@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.min.app.model.util">
+  <select id="changeLC" parameterType="java.lang.String" resultType="java.lang.String">
+  SELECT CASE 
+	WHEN UC_ID='RE_S01' THEN '도봉구'
+	WHEN UC_ID='RE_S02' THEN '은평구'
+	WHEN UC_ID='RE_S03' THEN '동대문구'
+	WHEN UC_ID='RE_S04' THEN '동작구'
+	WHEN UC_ID='RE_S05' THEN '금천구'
+	WHEN UC_ID='RE_S06' THEN '구로구'
+	WHEN UC_ID='RE_S07' THEN '종로구'
+	WHEN UC_ID='RE_S08' THEN '강북구'
+	WHEN UC_ID='RE_S09' THEN '중랑구'
+	WHEN UC_ID='RE_S10' THEN '강남구'
+	WHEN UC_ID='RE_S11' THEN '강서구'
+	WHEN UC_ID='RE_S12' THEN '중구'
+	WHEN UC_ID='RE_S13' THEN '강동구'
+	WHEN UC_ID='RE_S14' THEN '광진구'
+	WHEN UC_ID='RE_S15' THEN '마포구'
+	WHEN UC_ID='RE_S16' THEN '서초구'
+	WHEN UC_ID='RE_S17' THEN '성북구'
+	WHEN UC_ID='RE_S18' THEN '노원구'
+	WHEN UC_ID='RE_S19' THEN '송파구'
+	WHEN UC_ID='RE_S20' THEN '서대문구'
+	WHEN UC_ID='RE_S21' THEN '양천구'
+	WHEN UC_ID='RE_S22' THEN '영등포구'
+	WHEN UC_ID='RE_S23' THEN '관악구'
+	WHEN UC_ID='RE_S24' THEN '성동구'
+	WHEN UC_ID='RE_S25' THEN '용산구'
+	END
+	FROM UC
+		WHERE UC_ID=#{uc_id}
+  </select>
+  
+  <select id="getLatitude" parameterType="java.lang.String" resultType="java.lang.String">
+  	SELECT UC_NAME FROM UC WHERE UC_ID=#{where}
+  </select>
+</mapper>

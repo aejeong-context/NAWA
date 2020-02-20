@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.min.app.model.eventboard">
+
+<!-- 이벤트 문의 조회 -->
+<select id="selectInquiry" resultType="EBDto" parameterType="java.lang.Integer">
+SELECT E.EB_SEQ,M.MI_NCK,I.FI_STOREDNAME,E.EF_ID,E.UC_ID,E.EB_CON,E.EB_DFL,E.EB_RGD,E.EB_REFER,E.EB_STEP
+   FROM FA A JOIN MI M USING(MR_ID) JOIN FI I USING(FI_SEQ) JOIN EB E USING(MI_NCK)
+      WHERE E.UC_ID LIKE 'EB_INQUIRY' AND E.EF_ID=#{ef_id} AND E.EB_DFL='N'
+         ORDER BY EB_REFER DESC, EB_STEP ASC
+</select>
+
+<!-- 이벤트 문의 작성 -->
+<insert id="insertInquiry" parameterType="EBDto">
+INSERT INTO nawas.EB(MI_NCK,EB_CON,UC_ID,EF_ID,EB_REFER,EB_STEP,EB_DFL) 
+     VALUES (#{mi_nck},#{eb_con},'EB_INQUIRY',#{ef_id},
+     (SELECT IFNULL(MAX(e.EB_REFER),0)+1 FROM EB e),0,'N')
+</insert>
+
+<!--이벤트 문의 답변 up
+<update id="replyUp" parameterType="java.lang.String">
+UPDATE EB SET EB_STEP = EB_STEP+1
+				WHERE EB_REFER = (SELECT EB_REFER FROM EB WHERE EB_SEQ = #{eb_seq})
+					AND EB_STEP > (SELECT EB_STEP FROM EB WHERE EB_SEQ=#{eb_seq})
+</update> -->
+
+<!-- 이벤트 문의 답변 in -->
+<insert id="replyIn" parameterType="EBDto">									
+INSERT INTO nawas.EB(MI_NCK, EB_CON, EB_REFER, EB_STEP,UC_ID,EF_ID,EB_DFL)
+                VALUES(#{mi_nck},#{eb_con}, 
+                   (SELECT e.EB_REFER FROM EB e WHERE e.EB_SEQ=#{eb_seq}),
+                         (SELECT b.EB_STEP+1 FROM EB b WHERE b.EB_SEQ=#{eb_seq}),
+                                  'EB_INQUIRY',#{ef_id},'N')                                  
+</insert>
+
+
+<!-- 이벤트 문의 수정 -->
+<update id="modifyInquiry" parameterType="EBDto">
+UPDATE EB SET EB_CON=#{eb_con},EB_RGD=CURRENT_TIMESTAMP() WHERE EB_SEQ=#{eb_seq}
+</update>
+
+<!-- 이벤트 문의 삭제 , 답변만 삭제-->
+<update id="delReplyInquiry" parameterType="EBDto">
+UPDATE EB SET EB_DFL='Y'
+WHERE EB_STEP=#{eb_step} AND EB_REFER=#{eb_refer} AND UC_ID='EB_INQUIRY'
+</update>
+<!-- UPDATE EB SET EB_DFL='Y'
+WHERE EB_STEP=#{eb_step} OR EB_REFER=#{eb_refer} AND UC_ID='EV_INQUIRY' -->
+
+<!-- 이벤트 문의삭제, 문의 답변 둘다 삭제 -->
+<update id="delAllInquiry" parameterType="java.lang.Integer">
+UPDATE EB SET EB_DFL='Y'
+WHERE EB_REFER=#{eb_refer} AND UC_ID='EB_INQUIRY'
+</update>
+
+
+
+<!-- 이벤트 후기 조회 -->
+<select id="selectReview" resultType="EBDto" parameterType="java.lang.Integer">
+SELECT EB_SEQ, MI_NCK, EB_CON,EB_RGD,EB_DFL FROM EB WHERE UC_ID='EB_REVIEW' AND EF_ID=#{ef_id} AND EB_DFL='N'
+ORDER BY EB_SEQ DESC
+</select>
+
+<!-- 이벤트 후기 수정 -->
+<update id="modifyReview" parameterType="EBDto">
+UPDATE EB SET EB_CON = #{eb_con}, EB_RGD=CURRENT_TIMESTAMP()
+        WHERE EB_SEQ = #{eb_seq}
+</update>
+
+<!-- 이벤트 후기 작성 -->
+<insert id="insertReview" parameterType="EBDto">
+INSERT INTO  nawas.EB(MI_NCK,EB_CON,UC_ID,EF_ID,EB_DFL)  
+VALUES(#{mi_nck},#{eb_con},'EB_REVIEW',#{ef_id},'N')
+</insert>
+
+<!-- 이벤트 후기 삭제 -->
+<delete id="deleteReview" parameterType="EBDto">
+UPDATE EB SET EB_DFL='Y'
+WHERE EB_SEQ=#{eb_seq} 
+</delete>
+
+<!-- 이벤트 참가 권한 확인  -->
+<select id="epAuth" parameterType="EPDto" resultType="java.lang.String">
+SELECT EP_AUTH FROM EP WHERE MI_NCK=#{mi_nck} AND EF_ID=#{ef_id}
+</select>
+</mapper>

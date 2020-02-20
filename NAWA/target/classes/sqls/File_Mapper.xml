@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.min.app.model.file">
+
+<resultMap type="IFDto" id="FileInfoMap">
+	<result column="FI_SEQ" property="fi_seq"/>
+	<result column="FI_ORIGINNAME" property="fi_originname"/>
+	<result column="FI_STOREDNAME" property="fi_storedname"/>
+	<result column="FI_SIZE" property="fi_size"/>
+	<result column="FI_LC" property="fi_lc"/>
+	
+	<collection property="attachfiledto" resultMap="FileAttaMap"/>
+</resultMap>
+
+<resultMap type="ATDto" id="FileAttaMap">
+	<result column="BI_SEQ" property="bi_seq"/>
+	<result column="EF_ID" property="ef_id"/>
+	<result column="FI_SEQ" property="fi_seq"/>
+	<result column="MR_ID" property="mr_id"/>
+</resultMap>
+
+
+<!-- 이벤트 대표이미지 정보 입력 -->
+<insert id="insertRfile" parameterType="IFDto">
+INSERT INTO nawas.FI
+(FI_ORIGINNAME, FI_STOREDNAME, FI_SIZE, FI_LC,FI_DIV)
+VALUES(#{fi_originname},#{fi_storedname},#{fi_size},#{fi_lc},'R')
+</insert>
+
+<!-- 이벤트 상세이미지 정보 입력  -->
+<insert id="insertDfile" parameterType="IFDto">
+INSERT INTO nawas.FI
+(FI_ORIGINNAME, FI_STOREDNAME, FI_SIZE, FI_LC,FI_DIV)
+VALUES(#{fi_originname},#{fi_storedname},#{fi_size},#{fi_lc},'D')
+</insert>
+
+<!-- 공지사항,프로필 정보 입력 -->
+<insert id="insertInfoFile" parameterType="IFDto">
+INSERT INTO nawas.FI
+(FI_ORIGINNAME, FI_STOREDNAME, FI_SIZE, FI_LC)
+VALUES(#{fi_originname},#{fi_storedname},#{fi_size},#{fi_lc})
+</insert>
+
+<!-- 이벤트 첨부파일 입력 -->
+<insert id="insertEventFile" parameterType="java.lang.Integer">
+INSERT INTO FA(FI_SEQ,EF_ID) 
+VALUES((SELECT MAX(FI_SEQ) FROM FI),#{ef_id})
+</insert>
+
+<!-- 공지사항 첨부파일 입력 -->
+<insert id="insertNoticeFile" parameterType="java.lang.Integer">
+INSERT INTO nawas.FA
+(NB_SEQ, FI_SEQ)
+VALUES(#{nb_seq},(SELECT MAX(FI_SEQ) FROM nawas.FI))
+</insert>
+
+
+<!-- 프로필 첨부파일 입력 -->
+<insert id="insertProFile" parameterType="java.lang.String">
+INSERT INTO nawas.FA
+(FI_SEQ,MR_ID)
+VALUES((SELECT MAX(FI_SEQ) FROM nawas.FI),#{mr_id})
+</insert>
+
+<!-- 이벤트 대표이미지 조회 -->
+<select id="selectRfile" resultMap="FileInfoMap">
+SELECT I.FI_STOREDNAME,A.EF_ID ,I.FI_SEQ,I.FI_LC,I.FI_ORIGINNAME
+	FROM FI I JOIN FA A
+		ON I.FI_SEQ=A.FI_SEQ 
+		WHERE EF_ID=#{ef_id} AND I.FI_DIV='R'
+</select>
+
+<!-- 이벤트 상세 이미지 조회 -->
+<select id="selectDfile" resultMap="FileInfoMap">
+SELECT I.FI_STOREDNAME,A.EF_ID ,I.FI_SEQ,I.FI_LC,I.FI_ORIGINNAME
+	FROM FI I JOIN FA A
+		ON I.FI_SEQ=A.FI_SEQ 
+		WHERE EF_ID=#{ef_id} AND I.FI_DIV='D' ORDER BY FI_SEQ ASC
+</select>
+
+
+<!-- 공지사항 이미지 조회 -->
+<select id="selectNoticeFile" resultMap="FileInfoMap">
+SELECT I.FI_ORIGINNAME,I.FI_STOREDNAME,A.NB_SEQ ,I.FI_SEQ,I.FI_LC
+	FROM FI I JOIN  FA A
+		ON I.FI_SEQ=A.FI_SEQ 
+		WHERE A.NB_SEQ=#{nb_seq}
+		ORDER BY FI_SEQ ASC
+</select>
+
+<!-- 프로필 이미지 조회 -->
+<select id="selectProFile" resultMap="FileInfoMap">
+SELECT I.FI_SEQ,I.FI_STOREDNAME,A.MR_ID ,I.FI_SEQ,I.FI_LC
+	FROM FI I JOIN FA A
+		ON I.FI_SEQ=A.FI_SEQ 
+		WHERE MR_ID=#{mr_id}
+</select>
+
+<!-- 프로필 이미지 수정 -->
+<update id="updateProFile" parameterType="IFDto">
+UPDATE nawas.FI
+SET FI_ORIGINNAME=#{fi_originname}, FI_STOREDNAME=#{fi_storedname}, FI_SIZE=#{fi_size}, FI_LC=#{fi_lc}
+WHERE FI_SEQ=#{fi_seq}
+</update>
+
+<!-- 이미지 삭제 -->
+<delete id="deleteFile" parameterType="java.lang.Integer">
+DELETE FROM FI WHERE FI_SEQ=#{fi_seq}
+</delete>
+
+<!-- 이벤트 대표이미지 수정 -->
+<update id="updateRfile" parameterType="IFDto">
+UPDATE FI SET FI_ORIGINNAME=#{fi_originname}, FI_STOREDNAME=#{fi_storedname},FI_SIZE=#{fi_size}, FI_LC=#{fi_lc}
+WHERE FI_SEQ =#{fi_seq} AND FI_DIV='R'
+</update>
+
+<!-- 이벤트 조회 테스트 -->
+<select id="selectEvent" resultType="com.min.app.dto.event.InformEvtDto">
+SELECT EF_ID, EF_TITLE, EF_CON, EF_ATTEND_CON, EF_READ_CNT, EF_NUM_CNT, EF_START, EF_DEADLINE, EF_LC, UC_ID, EF_OPEN_STATUS, EF_RGD, EF_STATUS, EF_CLOSE, EF_REFER, EF_RETRY
+FROM NAWA.EF
+</select>
+
+</mapper>

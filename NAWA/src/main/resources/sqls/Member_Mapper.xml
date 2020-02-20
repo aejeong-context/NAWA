@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.min.app.model.member">
+
+<!-- 아이디 중복 체크 -->
+<select id="duplicateId" parameterType="java.lang.String" resultType="java.lang.String">
+   SELECT MR_ID FROM MR WHERE MR_ID=#{mr_id}
+</select>
+
+<!-- 이메일 중복 체크 -->
+<select id="duplicateEmail" parameterType="java.lang.String" resultType="java.lang.String">
+   SELECT MR_EMAIL FROM MR WHERE MR_EMAIL=#{mr_email}
+</select>
+
+<!-- 닉네임 중복 체크 -->
+<select id="duplicateNick" parameterType="java.lang.String" resultType="java.lang.String">
+   SELECT MI_NCK FROM MI WHERE MI_NCK=#{mi_nck}
+</select>
+
+<!-- 1단계 가입 -->
+<insert id="signUp1MR" parameterType="RDto">
+   INSERT INTO MR(MR_ID,MR_PW, MR_NAME,MR_PLATFORM, MR_EMAIL)
+         VALUES(#{mr_id},#{mr_pw},#{mr_name},#{mr_platform},#{mr_email})
+</insert>
+
+<!-- 2단계 가입 -->
+<insert id="signUp2MI" parameterType="IDto">
+   INSERT INTO MI(MI_NCK, MR_ID, MI_PHONE, MI_PROFILE,  MI_LC, MI_INTEREST)
+         VALUES(#{mi_nck},#{mr_id},#{mi_phone},NULL,#{mi_lc},#{mi_interest})
+</insert>
+
+<!-- 로그인 -->
+<select id="login" parameterType="java.util.Map" resultType="LDto">
+   SELECT R.MR_ID, MI_NCK, MR_AUTH, MI_PROFILE, MR_DFL, MI_CONDITION,MI_LC
+   FROM MR R INNER JOIN MI I
+   ON R.MR_ID = I.MR_ID
+   WHERE R.MR_ID=#{mr_id} AND MR_PW=#{mr_pw}
+</select>
+<update id="loginUpdate" parameterType="java.lang.String">
+   UPDATE MR SET MR_VISITED = NOW() WHERE MR_ID=#{mr_id}
+</update>
+
+<!-- 회원상세정보 -->
+<select id="userInfo" parameterType="java.lang.String" resultType="PRDto">
+   SELECT MR_ID, MR_PW, MR_NAME, MR_EMAIL, MI_NCK, MI_PROFILE, MI_LC, MI_PHONE, MI_CONDITION, MI_INTEREST 
+      FROM MI JOIN MR USING(MR_ID) 
+         WHERE MR_ID= #{mr_id}
+</select>
+
+<!-- 상태변경 -->
+<update id="updateState" parameterType="java.util.Map">
+   UPDATE MI
+      SET MI_CONDITION = #{mi_condition} 
+         WHERE MR_ID=#{mr_id}
+</update>
+
+<!-- 정보변경 -->
+<update id="updateInfoMI" parameterType="IDto">
+   UPDATE MI
+      SET MI_NCK = #{mi_nck}, MI_PROFILE=#{mi_profile}, MI_LC=#{mi_lc}, MI_PHONE=#{mi_phone}, MI_INTEREST=#{mi_interest}
+         WHERE MR_ID = #{mr_id}
+</update>
+<update id="updateInfoMR" parameterType="java.lang.String">
+   UPDATE MR
+      SET MR_EMAIL = #{mr_email}
+         WHERE MR_ID = #{mr_id}
+</update>
+
+<!-- 전체유저보기 -->
+<select id="allUserList" resultType="com.min.app.dto.member.ListMemDto">
+   SELECT R.MR_ID, MR_NAME, MR_EMAIL, MI_NCK, MR_RGD, MR_DFL, MR_VISITED, MI_CONDITION, MR_AUTH, MI_PHONE, MI_LC, MI_INTEREST, MI_PROFILE, MI_ATTEND_CNT, MI_OPEN_CNT
+      FROM MR R INNER JOIN MI I
+      ON R.MR_ID = I.MR_ID
+         WHERE MR_AUTH = 'U' 
+            ORDER BY R.MR_ID ASC
+</select>
+
+<!-- 상세유저보기 -->
+<select id="detailUserList" parameterType="java.lang.String" resultType="com.min.app.dto.member.ListMemDto">
+   SELECT R.MR_ID, MR_NAME, MR_EMAIL, MI_NCK, MR_RGD, MR_DFL, MR_VISITED, MI_CONDITION, MR_AUTH, MI_PHONE, MI_LC, MI_INTEREST, MI_PROFILE, MI_ATTEND_CNT, MI_OPEN_CNT
+      FROM MR R INNER JOIN MI I
+      ON R.MR_ID = I.MR_ID
+         WHERE R.MR_ID = #{mr_id} 
+</select>
+
+<!-- 회원정지 -->
+<update id="userBan" parameterType="java.lang.String">
+   UPDATE MR
+      SET MR_DFL = 'B'
+         WHERE MR_ID = #{mr_id}
+</update>
+
+<!-- 회원정지해제 -->
+<update id="userRelease" parameterType="java.lang.String">
+   UPDATE MR
+      SET MR_DFL = 'N'
+         WHERE MR_ID=#{mr_id}
+</update>
+
+<!-- 회원탈퇴 -->
+<update id="signUpDrop" parameterType="java.lang.String">
+   UPDATE MR
+      SET MR_DFL = 'Y'
+         WHERE MR_ID = #{mr_id}
+</update>
+
+<!-- 암호화 확인 쿼리 -->
+<select id="ecPasswordLogin" parameterType="java.lang.String" resultType="java.lang.String">
+   SELECT MR_PW FROM MR WHERE MR_ID = #{mr_id}
+</select>
+
+<!-- 암호화 로그인 -->
+<select id="enLogin" parameterType="java.lang.String" resultType="LDto">
+   SELECT MR_ID, MI_NCK,MR_AUTH,MI_PROFILE, MR_DFL,MI_CONDITION,MI_LC,MR_PLATFORM
+      FROM MR JOIN MI USING(MR_ID) 
+         WHERE MR_ID=#{mr_id}
+</select>
+
+<!-- 마감된 이벤트 -->
+<select id="closeEvent" parameterType="java.lang.String" resultType="EDto">
+   SELECT F.EF_ID,EF_TITLE,(SELECT CASE 
+   WHEN UC_ID='RE_S01' THEN '도봉구'
+   WHEN UC_ID='RE_S02' THEN '은평구'
+   WHEN UC_ID='RE_S03' THEN '동대문구'
+   WHEN UC_ID='RE_S04' THEN '동작구'
+   WHEN UC_ID='RE_S05' THEN '금천구'
+   WHEN UC_ID='RE_S06' THEN '구로구'
+   WHEN UC_ID='RE_S07' THEN '종로구'
+   WHEN UC_ID='RE_S08' THEN '강북구'
+   WHEN UC_ID='RE_S09' THEN '중랑구'
+   WHEN UC_ID='RE_S10' THEN '강남구'
+   WHEN UC_ID='RE_S11' THEN '강서구'
+   WHEN UC_ID='RE_S12' THEN '중구'
+   WHEN UC_ID='RE_S13' THEN '강동구'
+   WHEN UC_ID='RE_S14' THEN '광진구'
+   WHEN UC_ID='RE_S15' THEN '마포구'
+   WHEN UC_ID='RE_S16' THEN '서초구'
+   WHEN UC_ID='RE_S17' THEN '성북구'
+   WHEN UC_ID='RE_S18' THEN '노원구'
+   WHEN UC_ID='RE_S19' THEN '송파구'
+   WHEN UC_ID='RE_S20' THEN '서대문구'
+   WHEN UC_ID='RE_S21' THEN '양천구'
+   WHEN UC_ID='RE_S22' THEN '영등포구'
+   WHEN UC_ID='RE_S23' THEN '관악구'
+   WHEN UC_ID='RE_S24' THEN '성동구'
+   WHEN UC_ID='RE_S25' THEN '용산구'
+   END
+   FROM UC
+      WHERE UC_ID=EF_LC)EF_LC,EF_NUM_CNT,EF_RGD,EF_DEADLINE,(SELECT COUNT(*) FROM EP WHERE EF_ID= F.EF_ID)ATTEND_NUM
+   FROM EF F INNER JOIN EP P
+         ON 
+         F.EF_ID = P.EF_ID
+         WHERE MI_NCK=#{mi_nck} AND EF_STATUS='C'
+</select>
+<!-- 진행중인 이벤트 -->
+<select id="openEvent" parameterType="java.lang.String" resultType="EDto">
+   SELECT F.EF_ID,EF_TITLE,(SELECT CASE 
+   WHEN UC_ID='RE_S01' THEN '도봉구'
+   WHEN UC_ID='RE_S02' THEN '은평구'
+   WHEN UC_ID='RE_S03' THEN '동대문구'
+   WHEN UC_ID='RE_S04' THEN '동작구'
+   WHEN UC_ID='RE_S05' THEN '금천구'
+   WHEN UC_ID='RE_S06' THEN '구로구'
+   WHEN UC_ID='RE_S07' THEN '종로구'
+   WHEN UC_ID='RE_S08' THEN '강북구'
+   WHEN UC_ID='RE_S09' THEN '중랑구'
+   WHEN UC_ID='RE_S10' THEN '강남구'
+   WHEN UC_ID='RE_S11' THEN '강서구'
+   WHEN UC_ID='RE_S12' THEN '중구'
+   WHEN UC_ID='RE_S13' THEN '강동구'
+   WHEN UC_ID='RE_S14' THEN '광진구'
+   WHEN UC_ID='RE_S15' THEN '마포구'
+   WHEN UC_ID='RE_S16' THEN '서초구'
+   WHEN UC_ID='RE_S17' THEN '성북구'
+   WHEN UC_ID='RE_S18' THEN '노원구'
+   WHEN UC_ID='RE_S19' THEN '송파구'
+   WHEN UC_ID='RE_S20' THEN '서대문구'
+   WHEN UC_ID='RE_S21' THEN '양천구'
+   WHEN UC_ID='RE_S22' THEN '영등포구'
+   WHEN UC_ID='RE_S23' THEN '관악구'
+   WHEN UC_ID='RE_S24' THEN '성동구'
+   WHEN UC_ID='RE_S25' THEN '용산구'
+   END
+   FROM UC
+      WHERE UC_ID=EF_LC)EF_LC,EF_NUM_CNT,EF_RGD,EF_DEADLINE,(SELECT COUNT(*) FROM EP WHERE EF_ID= F.EF_ID)ATTEND_NUM
+   FROM EF F INNER JOIN EP P
+         ON 
+         F.EF_ID = P.EF_ID
+         WHERE MI_NCK=#{mi_nck} AND (EF_STATUS='O' OR EF_STATUS='A' OR EF_STATUS='E') AND (EP_AUTH='A' OR EP_AUTH='F'OR EP_AUTH='W')
+      UNION
+   SELECT F.EF_ID,EF_TITLE,(SELECT CASE 
+   WHEN UC_ID='RE_S01' THEN '도봉구'
+   WHEN UC_ID='RE_S02' THEN '은평구'
+   WHEN UC_ID='RE_S03' THEN '동대문구'
+   WHEN UC_ID='RE_S04' THEN '동작구'
+   WHEN UC_ID='RE_S05' THEN '금천구'
+   WHEN UC_ID='RE_S06' THEN '구로구'
+   WHEN UC_ID='RE_S07' THEN '종로구'
+   WHEN UC_ID='RE_S08' THEN '강북구'
+   WHEN UC_ID='RE_S09' THEN '중랑구'
+   WHEN UC_ID='RE_S10' THEN '강남구'
+   WHEN UC_ID='RE_S11' THEN '강서구'
+   WHEN UC_ID='RE_S12' THEN '중구'
+   WHEN UC_ID='RE_S13' THEN '강동구'
+   WHEN UC_ID='RE_S14' THEN '광진구'
+   WHEN UC_ID='RE_S15' THEN '마포구'
+   WHEN UC_ID='RE_S16' THEN '서초구'
+   WHEN UC_ID='RE_S17' THEN '성북구'
+   WHEN UC_ID='RE_S18' THEN '노원구'
+   WHEN UC_ID='RE_S19' THEN '송파구'
+   WHEN UC_ID='RE_S20' THEN '서대문구'
+   WHEN UC_ID='RE_S21' THEN '양천구'
+   WHEN UC_ID='RE_S22' THEN '영등포구'
+   WHEN UC_ID='RE_S23' THEN '관악구'
+   WHEN UC_ID='RE_S24' THEN '성동구'
+   WHEN UC_ID='RE_S25' THEN '용산구'
+   END
+   FROM UC
+      WHERE UC_ID=EF_LC)EF_LC,EF_NUM_CNT,EF_RGD,EF_DEADLINE,(SELECT COUNT(*) FROM EP WHERE EF_ID= F.EF_ID)ATTEND_NUM
+   FROM EF F INNER JOIN EW W
+         ON 
+         F.EF_ID = W.EF_ID
+         WHERE W.MI_NCK=#{mi_nck}
+</select>
+<!-- 초대받은 이벤트 -->
+<select id="inviteEvent" parameterType="java.lang.String" resultType="EDto">
+   SELECT F.EF_ID,EF_TITLE,(SELECT CASE 
+   WHEN UC_ID='RE_S01' THEN '도봉구'
+   WHEN UC_ID='RE_S02' THEN '은평구'
+   WHEN UC_ID='RE_S03' THEN '동대문구'
+   WHEN UC_ID='RE_S04' THEN '동작구'
+   WHEN UC_ID='RE_S05' THEN '금천구'
+   WHEN UC_ID='RE_S06' THEN '구로구'
+   WHEN UC_ID='RE_S07' THEN '종로구'
+   WHEN UC_ID='RE_S08' THEN '강북구'
+   WHEN UC_ID='RE_S09' THEN '중랑구'
+   WHEN UC_ID='RE_S10' THEN '강남구'
+   WHEN UC_ID='RE_S11' THEN '강서구'
+   WHEN UC_ID='RE_S12' THEN '중구'
+   WHEN UC_ID='RE_S13' THEN '강동구'
+   WHEN UC_ID='RE_S14' THEN '광진구'
+   WHEN UC_ID='RE_S15' THEN '마포구'
+   WHEN UC_ID='RE_S16' THEN '서초구'
+   WHEN UC_ID='RE_S17' THEN '성북구'
+   WHEN UC_ID='RE_S18' THEN '노원구'
+   WHEN UC_ID='RE_S19' THEN '송파구'
+   WHEN UC_ID='RE_S20' THEN '서대문구'
+   WHEN UC_ID='RE_S21' THEN '양천구'
+   WHEN UC_ID='RE_S22' THEN '영등포구'
+   WHEN UC_ID='RE_S23' THEN '관악구'
+   WHEN UC_ID='RE_S24' THEN '성동구'
+   WHEN UC_ID='RE_S25' THEN '용산구'
+   END
+   FROM UC
+      WHERE UC_ID=EF_LC)EF_LC,EF_NUM_CNT,EF_RGD
+   FROM EF F INNER JOIN EP P
+         ON 
+         F.EF_ID = P.EF_ID
+         WHERE MI_NCK=#{mi_nck} AND EP_AUTH='I'
+</select>
+
+<!-- 마감된 이벤트 수 -->
+<select id="closeEventCount" parameterType="java.lang.String" resultType="java.lang.Integer">
+      SELECT COUNT(*)
+   FROM EF F INNER JOIN EP P
+         ON 
+         F.EF_ID = P.EF_ID
+         WHERE MI_NCK=#{mi_nck} AND (EF_STATUS='C')
+</select>
+<!-- 진행중인 이벤트 수-->
+<select id="openEventCount" parameterType="java.lang.String" resultType="java.lang.Integer">
+      SELECT COUNT(*)+(SELECT COUNT(*)
+   FROM EF F INNER JOIN EW W
+         ON 
+         F.EF_ID = W.EF_ID
+         WHERE W.MI_NCK=#{mi_nck})COUNT
+   FROM EF F INNER JOIN EP P
+         ON 
+         F.EF_ID = P.EF_ID
+         WHERE
+         MI_NCK=#{mi_nck} AND (EF_STATUS='O' OR EF_STATUS='A' OR EF_STATUS='E') AND (EP_AUTH='A' OR EP_AUTH='F' OR EP_AUTH='W')
+</select>
+<!-- 초대받은 이벤트 수-->
+<select id="inviteEventCount" parameterType="java.lang.String" resultType="java.lang.Integer">
+   SELECT COUNT(*)
+      FROM EF F INNER JOIN EP P
+         ON 
+         F.EF_ID = P.EF_ID
+         WHERE
+         MI_NCK=#{mi_nck} AND EP_AUTH='I'
+</select>
+
+<!-- 비밀번호 재설정하기 준비 -->
+<select id="pwReset" parameterType="java.util.Map" resultType="java.lang.String">
+   SELECT MR_ID
+      FROM MR 
+         WHERE MR_ID=#{mr_id} AND MR_EMAIL= #{mr_email}
+</select>
+
+<!-- 비밀번호 이메일링크 키값 생성 --> 
+<update id="codeUpdate" parameterType="java.util.Map">
+   UPDATE MR SET MR_CODE = #{mr_code} WHERE MR_ID=#{mr_id}
+</update>
+
+<!-- 비밀번호 이메일링크 키값 조회 -->
+<select id="codeSelect" parameterType="java.lang.String" resultType="java.lang.String">
+   SELECT IFNULL(mr_code,'없음') FROM MR WHERE MR_ID=#{mr_id}
+</select>
+
+<!-- 비밀번호 이메일링크 키값 초기화  -->
+<delete id="codeReset" parameterType="java.util.Map">
+   UPDATE MR SET MR_CODE = NULL WHERE MR_ID=#{mr_id}
+</delete>
+
+<!-- 비밀번호 변경 -->
+<update id="pwChange" parameterType="java.util.Map">
+   UPDATE MR SET MR_PW = #{mr_pw} WHERE MR_ID= #{mr_id}
+</update>
+
+<!-- 회원 리스트 갯수 뿌리기 -->
+<select id="selectCountUser" parameterType="PMDto" resultType="LTDto">
+SELECT M.MR_ID, M.MR_NAME, M.MR_EMAIL, M.MI_NCK, M.MR_RGD, M.MR_DFL, M.MR_VISITED, M.MI_CONDITION, M.MR_AUTH, M.MI_PHONE, M.MI_LC, M.MI_INTEREST, M.MI_PROFILE, M.MI_ATTEND_CNT, M.MI_OPEN_CNT
+   FROM (
+        SELECT (@ROWNUM:=@ROWNUM+1)RN,  P.MR_ID, P.MR_NAME, P.MR_EMAIL, P.MI_NCK, P.MR_RGD, P.MR_DFL, P.MR_VISITED, P.MI_CONDITION, P.MR_AUTH, P.MI_PHONE, P.MI_LC, P.MI_INTEREST, P.MI_PROFILE, P.MI_ATTEND_CNT, P.MI_OPEN_CNT
+            FROM (
+               SELECT (@ROWNUM:=0) RO, R.MR_ID, MR_NAME, MR_EMAIL, MI_NCK, MR_RGD, MR_DFL, MR_VISITED, MI_CONDITION, MR_AUTH, MI_PHONE, MI_LC, MI_INTEREST, MI_PROFILE, MI_ATTEND_CNT, MI_OPEN_CNT
+                   FROM  MR R INNER JOIN MI I
+                  ON R.MR_ID = I.MR_ID
+                  WHERE MR_AUTH = 'U'
+                   ORDER BY MR_RGD ASC
+            ) P
+      ) M
+      WHERE RN BETWEEN #{start} AND #{last}   
+</select>
+<!-- 총 회원수 뿌리기 -->
+<select id="userTotalCount" resultType="java.lang.Integer">
+   SELECT COUNT(*)
+   FROM  MR R INNER JOIN MI I
+      ON R.MR_ID = I.MR_ID
+   WHERE MR_AUTH = 'U'
+</select>
+
+</mapper>

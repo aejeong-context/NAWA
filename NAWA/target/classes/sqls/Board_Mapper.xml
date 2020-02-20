@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.min.app.model.board">
+
+<select id="selectPaging" parameterType="PDto" resultType="BDto">
+SELECT A.* FROM(SELECT @ROWNUM := @ROWNUM + 1 RNUM, P.* 
+		FROM(SELECT NB_SEQ, MI_NCK,NB_TITLE,NB_CON,UC_NAME,
+			NB_DFL,NB_RGD, @ROWNUM:=0 FROM NB,UC WHERE NB.UC_ID=UC.UC_ID AND NB_DFL='N' ORDER BY NB_SEQ DESC
+		      )P)A WHERE RNUM BETWEEN #{start} AND #{last}
+</select>
+
+<select id="selectTotalPaging" resultType="java.lang.Integer">
+      SELECT IFNULL(COUNT(*),0) FROM NB WHERE NB_DFL='N'
+</select>
+
+<select id="boardSelectOne" parameterType="java.lang.String" resultType="BDto">
+SELECT NB_SEQ,MI_NCK,NB_TITLE,NB_CON,UC_ID,NB_DFL,NB_RGD FROM NB WHERE NB_SEQ=#{nb_seq}
+</select>
+
+<insert id="insertBoard" parameterType="BDto">
+<selectKey keyProperty="nb_seq" resultType="java.lang.Integer" order="BEFORE">
+      SELECT IFNULL(MAX(NB_SEQ),0)+1 from nawas.NB
+   </selectKey>
+	INSERT INTO NB(NB_SEQ,MI_NCK,NB_TITLE,NB_CON,UC_ID) 
+			VALUES(#{nb_seq},#{mi_nck},
+			#{nb_title},#{nb_con},#{uc_id})
+</insert>
+
+<update id="updateBoard" parameterType="BDto">
+UPDATE NB SET UC_ID=#{uc_id},
+NB_TITLE = CONCAT(TRIM(SUBSTRING_INDEX(#{nb_title},'(수정)',1)),'(수정)'), 
+NB_CON=#{nb_con}
+WHERE NB_SEQ=#{nb_seq}
+</update>
+
+<delete id="deleteNotice" parameterType="java.lang.String">
+UPDATE NB SET NB_DFL='Y' WHERE NB_SEQ=#{nb_seq}
+</delete>
+
+
+</mapper>

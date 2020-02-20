@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd" >
+<configuration>
+	<settings>
+      <setting name="jdbcTypeForNull" value="NULL"/>
+   </settings>
+      <typeAliases>
+      	<typeAlias type="com.min.app.dto.member.InformMemDto" alias="IDto"/>
+      	<typeAlias type="com.min.app.dto.member.ListMemDto" alias="LTDto"/>
+      	<typeAlias type="com.min.app.dto.member.LoginMemDto" alias="LDto"/>
+      	<typeAlias type="com.min.app.dto.member.PrivacyMemDto" alias="PRDto"/>
+      	<typeAlias type="com.min.app.dto.member.RegistMemDto" alias="RDto"/>
+      	<typeAlias type="com.min.app.dto.member.UpdateMemDto" alias="UDto" />
+      
+		<typeAlias type="com.min.app.dto.board.PagingBrdDto" alias="PDto"/>
+		<typeAlias type="com.min.app.dto.board.PagingMemDto" alias="PMDto"/>
+		<typeAlias type="com.min.app.dto.board.WriteBrdDto" alias="BDto"/>
+		<typeAlias type="com.min.app.dto.board.EventBrdDto" alias="EBDto"/>
+		
+		<typeAlias type="com.min.app.dto.event.InformEvtDto" alias="EDto"/>
+		<typeAlias type="com.min.app.dto.event.ParticEvtDto" alias="EPDto"/>
+		<typeAlias type="com.min.app.dto.event.SearchEvtDto" alias="SDto"/>
+		<typeAlias type="com.min.app.dto.event.PartiSearchDto" alias="EPSDto"/>
+		
+		<typeAlias type="com.min.app.dto.file.InformFileDto" alias="IFDto"/>
+		<typeAlias type="com.min.app.dto.file.AttachFileDto" alias="ATDto"/>		
+	</typeAliases>
+	<mappers>
+		<mapper resource="sqls/Member_Mapper.xml"/>
+		<mapper resource="sqls/Util_Mapper.xml"/>
+		<mapper resource="sqls/Event_Mapper.xml"/>
+		<mapper resource="sqls/EventBoard_Mapper.xml"/>
+		<mapper resource="sqls/Board_Mapper.xml"/>
+		<mapper resource="sqls/File_Mapper.xml"/>
+	</mappers>
+</configuration>

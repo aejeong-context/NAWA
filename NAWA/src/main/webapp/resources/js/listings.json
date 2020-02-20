@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "is_logged_in": 1,
+    "title": "Think Coffee",
+    "address": "215 Terry Lane, New York",
+    "thumbnail": "assets/img/listing/listing-4.jpg",
+    "verified": false,
+    "category": "Eat & Drink",
+    "likes": " 8 K",
+    "lat": -33.922125,
+    "lng": 151.159277
+  },
+  {
+    "id": 2,
+    "is_logged_in": 1,
+    "title": "Burger House",
+    "address": "2726 Shinn Street, New York",
+    "thumbnail": "assets/img/listing/listing-5.jpg",
+    "verified": true,
+    "category": "Eat & Drink",
+    "likes": " 9.2 k",
+    "lat": -33.92148,
+    "lng": 151.162852
+  },
+  {
+    "id": 3,
+    "is_logged_in": 0,
+    "title": "Tom's Restaurant",
+    "address": "964 School Street, New York",
+    "thumbnail": "assets/img/listing/listing-10.jpg",
+    "verified": false,
+    "category": "Eat & Drink",
+    "likes": " 9.5 k",
+    "lat": -33.923803,
+    "lng": 151.162723
+  },
+  {
+    "id": 4,
+    "is_logged_in": 0,
+    "title": "The City Theater",
+    "address": "155 1st Avenue, New York",
+    "thumbnail": "assets/img/listing/listing-1.jpg",
+    "verified": true,
+    "category": "Others",
+    "likes": " 10 k",
+    "lat": -33.925335,
+    "lng": 151.160577
+  },
+  {
+    "id": 5,
+    "is_logged_in": 0,
+    "title": "Sticky Band",
+    "address": "Bishop Avenue, New York",
+    "thumbnail": "assets/img/listing/listing-7.jpg",
+    "verified": false,
+    "category": "Events",
+    "likes": " 596",
+    "lat": -33.921329,
+    "lng": 151.151071
+  },
+  {
+    "id": 6,
+    "is_logged_in": 0,
+    "title": "Hotel Govendor",
+    "address": "4419 Railroad Street Marquette",
+    "thumbnail": "assets/img/listing/listing-8.jpg",
+    "verified": false,
+    "category": "Hotels",
+    "likes": " 5k",
+    "lat": -33.923323,
+    "lng": 151.157219
+  }
+]
