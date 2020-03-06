@@ -21,15 +21,15 @@ MyBatis(iBatis), AJAX, JSON, Spring Frame 4.0.1, jQuery
 
 ## 사용 도구
 
-소프트웨어 개발 도구 : Eclipse /n
-미들웨어 : Oracle Express Edition 11g
-WAS : Tomcat 8.5
-배포도구 : Maven
-문서 작성 도구 : Google Docs, Google Spread Sheet
-클라이언트 도구 : tern
-데이터베이스 도구 : DBeaver
-다이어그램 도구 : StartUML
-ERD작성 도구 : ERDCloud
+소프트웨어 개발 도구 : Eclipse  
+미들웨어 : Oracle Express Edition 11g  
+WAS : Tomcat 8.5  
+배포도구 : Maven  
+문서 작성 도구 : Google Docs, Google Spread Sheet  
+클라이언트 도구 : tern  
+데이터베이스 도구 : DBeaver  
+다이어그램 도구 : StartUML  
+ERD작성 도구 : ERDCloud  
 
 
 ## 정보
